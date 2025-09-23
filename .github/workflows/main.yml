@@ -7,12 +7,16 @@ jobs:
   secure-rdp:
     runs-on: windows-latest
     timeout-minutes: 3600
+    permissions:
+      contents: write
+      actions: read
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: Configure Core RDP Settings
         run: |
@@ -105,22 +109,29 @@ jobs:
 
       - name: Write Credentials to File
         run: |
-          $credContent = @"
-$env:TAILSCALE_IP
-RDP
-$env:RDP_PASSWORD
-"@
-          $credContent | Out-File -FilePath "rdp_creds.txt" -Encoding ASCII
+          $credContent = "$env:TAILSCALE_IP`nRDP`n$env:RDP_PASSWORD"
+          $credContent | Out-File -FilePath "rdp_creds.txt" -Encoding UTF8 -NoNewline
           
           Write-Host "Credentials written to file"
+          Write-Host "File content:"
+          Get-Content "rdp_creds.txt"
           
       - name: Commit Credentials File
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          git config --global --add safe.directory $env:GITHUB_WORKSPACE
+          
+          git status
           git add rdp_creds.txt
-          git commit -m "Add RDP credentials" || echo "No changes to commit"
-          git push
+          
+          if (git diff --staged --quiet) {
+              Write-Host "No changes to commit"
+          } else {
+              git commit -m "Add RDP credentials [skip ci]"
+              git push origin $env:GITHUB_REF_NAME
+              Write-Host "Credentials file committed and pushed"
+          }
 
       - name: Maintain Connection
         run: |
