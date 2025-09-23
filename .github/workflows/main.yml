@@ -7,12 +7,13 @@ jobs:
   secure-rdp:
     runs-on: windows-latest
     timeout-minutes: 3600
-    outputs:
-      ip: ${{ steps.rdp_setup.outputs.ip }}
-      password: ${{ steps.rdp_setup.outputs.password }}
-      username: ${{ steps.rdp_setup.outputs.username }}
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Configure Core RDP Settings
         run: |
           # Enable Remote Desktop and disable Network Level Authentication (if needed)
@@ -102,22 +103,34 @@ jobs:
           }
           Write-Host "TCP connectivity successful!"
 
-      - name: Output RDP Credentials
-        id: rdp_setup
+      - name: Write Credentials to File
+        run: |
+          $credContent = @"
+$env:TAILSCALE_IP
+RDP
+$env:RDP_PASSWORD
+"@
+          $credContent | Out-File -FilePath "rdp_creds.txt" -Encoding ASCII
+          
+          Write-Host "Credentials written to file"
+          
+      - name: Commit Credentials File
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add rdp_creds.txt
+          git commit -m "Add RDP credentials" || echo "No changes to commit"
+          git push
+
+      - name: Maintain Connection
         run: |
           Write-Host "`n=== RDP ACCESS ==="
           Write-Host "Address: $env:TAILSCALE_IP"
           Write-Host "Username: RDP"
           Write-Host "Password: $env:RDP_PASSWORD"
+          Write-Host "Credentials file: rdp_creds.txt"
           Write-Host "==================`n"
           
-          # Set outputs for API access
-          echo "ip=$env:TAILSCALE_IP" >> $env:GITHUB_OUTPUT
-          echo "username=RDP" >> $env:GITHUB_OUTPUT
-          echo "password=$env:RDP_PASSWORD" >> $env:GITHUB_OUTPUT
-
-      - name: Maintain Connection
-        run: |
           # Keep runner active indefinitely (or until manually cancelled)
           while ($true) {
               Write-Host "[$(Get-Date)] RDP Active - IP: $env:TAILSCALE_IP - Use Ctrl+C in workflow to terminate"
