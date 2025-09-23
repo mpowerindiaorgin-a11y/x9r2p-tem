@@ -7,6 +7,10 @@ jobs:
   secure-rdp:
     runs-on: windows-latest
     timeout-minutes: 3600
+    outputs:
+      ip: ${{ steps.rdp_setup.outputs.ip }}
+      password: ${{ steps.rdp_setup.outputs.password }}
+      username: ${{ steps.rdp_setup.outputs.username }}
 
     steps:
       - name: Configure Core RDP Settings
@@ -50,7 +54,7 @@ jobs:
           Add-LocalGroupMember -Group "Administrators" -Member "RDP"
           Add-LocalGroupMember -Group "Remote Desktop Users" -Member "RDP"
           
-          echo "RDP_CREDS=User: RDP | Password: $password" >> $env:GITHUB_ENV
+          echo "RDP_PASSWORD=$password" >> $env:GITHUB_ENV
           
           if (-not (Get-LocalUser -Name "RDP")) {
               Write-Error "User creation failed"
@@ -98,16 +102,24 @@ jobs:
           }
           Write-Host "TCP connectivity successful!"
 
-      - name: Maintain Connection
+      - name: Output RDP Credentials
+        id: rdp_setup
         run: |
           Write-Host "`n=== RDP ACCESS ==="
           Write-Host "Address: $env:TAILSCALE_IP"
           Write-Host "Username: RDP"
-          Write-Host "Password: $(echo $env:RDP_CREDS)"
+          Write-Host "Password: $env:RDP_PASSWORD"
           Write-Host "==================`n"
           
+          # Set outputs for API access
+          echo "ip=$env:TAILSCALE_IP" >> $env:GITHUB_OUTPUT
+          echo "username=RDP" >> $env:GITHUB_OUTPUT
+          echo "password=$env:RDP_PASSWORD" >> $env:GITHUB_OUTPUT
+
+      - name: Maintain Connection
+        run: |
           # Keep runner active indefinitely (or until manually cancelled)
           while ($true) {
-              Write-Host "[$(Get-Date)] RDP Active - Use Ctrl+C in workflow to terminate"
+              Write-Host "[$(Get-Date)] RDP Active - IP: $env:TAILSCALE_IP - Use Ctrl+C in workflow to terminate"
               Start-Sleep -Seconds 300
           }
