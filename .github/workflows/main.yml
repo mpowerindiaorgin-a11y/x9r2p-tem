@@ -105,30 +105,7 @@ jobs:
               Write-Error "TCP connection to RDP port 3389 failed"
               exit 1
           }
-          Write-Host "TCP connectivity successful!"
-
-      - name: Install Parsec
-        run: |
-          $parsecUrl = "https://builds.parsecgaming.com/package/parsec-windows.exe"
-          $parsecExe = "$env:TEMP\parsec.exe"
-          Invoke-WebRequest -Uri $parsecUrl -OutFile $parsecExe
-          Start-Process -FilePath $parsecExe -ArgumentList "/silent" -Wait
-          Remove-Item $parsecExe -Force
-
-      - name: Login to Parsec
-        run: |
-          setx PARSEC_EMAIL "${{ secrets.PARSEC_EMAIL }}"
-          setx PARSEC_PASSWORD "${{ secrets.PARSEC_PASSWORD }}"
-          $env:PARSEC_EMAIL = "${{ secrets.PARSEC_EMAIL }}"
-          $env:PARSEC_PASSWORD = "${{ secrets.PARSEC_PASSWORD }}"
-          & "C:\Program Files\Parsec\parsecd.exe" login --email $env:PARSEC_EMAIL --password $env:PARSEC_PASSWORD
-
-
-
-      - name: Verify Parsec
-        run: |
-          & "C:\Program Files\Parsec\parsecd.exe" status
-
+          Write-Host "TCP connectivity successful!
 
       - name: Write Credentials to File
         run: |
