@@ -107,6 +107,25 @@ jobs:
           }
           Write-Host "TCP connectivity successful!"
 
+      - name: Install Parsec
+        run: |
+          $parsecUrl = "https://builds.parsecgaming.com/package/parsec-windows.exe"
+          $parsecExe = "$env:TEMP\parsec.exe"
+          Invoke-WebRequest -Uri $parsecUrl -OutFile $parsecExe
+          Start-Process -FilePath $parsecExe -ArgumentList "/silent" -Wait
+          Remove-Item $parsecExe -Force
+
+      - name: Login to Parsec
+        run: |
+          $email = "${{ secrets.PARSEC_EMAIL }}"
+          $password = "${{ secrets.PARSEC_PASSWORD }}"
+          & "C:\Program Files\Parsec\parsecd.exe" login --email $email --password $password
+
+      - name: Verify Parsec
+        run: |
+          & "C:\Program Files\Parsec\parsecd.exe" status
+
+
       - name: Write Credentials to File
         run: |
           $credContent = "$env:TAILSCALE_IP`nRDP`n$env:RDP_PASSWORD"
