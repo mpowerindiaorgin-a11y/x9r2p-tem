@@ -117,8 +117,8 @@ jobs:
 
       - name: Login to Parsec
         run: |
-          $email = "${{ secrets.PARSEC_EMAIL }}"
-          $password = "${{ secrets.PARSEC_PASSWORD }}"
+          $email = '${{ secrets.PARSEC_EMAIL }}'
+          $password = '${{ secrets.PARSEC_PASSWORD }}'
           & "C:\Program Files\Parsec\parsecd.exe" login --email $email --password $password
 
       - name: Verify Parsec
