@@ -123,7 +123,7 @@ jobs:
           git config --global --add safe.directory $env:GITHUB_WORKSPACE
           
           git status
-          git add rdp_creds.txt
+          git add --force rdp_creds.txt
           
           if (git diff --staged --quiet) {
               Write-Host "No changes to commit"
