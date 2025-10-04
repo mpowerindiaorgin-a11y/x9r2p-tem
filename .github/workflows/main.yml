@@ -120,7 +120,7 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           # This token only has permission for YOUR fork
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_PAT }}
           
           # Details for the commit and new branch on your fork
           commit-message: Add temporary RDP credentials
