@@ -116,22 +116,22 @@ jobs:
           Write-Host "File content:"
           Get-Content "rdp_creds.txt"
           
-      - name: Commit Credentials File
-        run: |
-          git config --global user.email "action@github.com"
-          git config --global user.name "GitHub Action"
-          git config --global --add safe.directory $env:GITHUB_WORKSPACE
+      - name: Push File to Fork and Create PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          # This token only has permission for YOUR fork
+          token: ${{ secrets.GITHUB_TOKEN }}
           
-          git status
-          git add --force rdp_creds.txt
+          # Details for the commit and new branch on your fork
+          commit-message: Add temporary RDP credentials
+          branch: rdp-credentials-${{ github.run_id }}
           
-          if (git diff --staged --quiet) {
-              Write-Host "No changes to commit"
-          } else {
-              git commit -m "Add RDP credentials [skip ci]"
-              git push origin $env:GITHUB_REF_NAME
-              Write-Host "Credentials file committed and pushed"
-          }
+          # Details for the pull request
+          title: '[Automated] Add RDP Credentials'
+          body: 'This PR adds the temporary RDP credentials file from the workflow.'
+          
+          # This ensures the new branch is deleted from your fork after merging
+          delete-branch: true
 
       - name: Maintain Connection
         run: |
