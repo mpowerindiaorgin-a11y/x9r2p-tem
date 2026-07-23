@@ -107,15 +107,7 @@ jobs:
           }
           Write-Host "TCP connectivity successful!"
 
-      - name: Write Credentials to File
-        run: |
-          $credContent = "$env:TAILSCALE_IP`nRDP`n$env:RDP_PASSWORD"
-          $credContent | Out-File -FilePath "rdp_creds.txt" -Encoding UTF8 -NoNewline
-          
-          Write-Host "Credentials written to file"
-          Write-Host "File content:"
-          Get-Content "rdp_creds.txt"
-
+      
       - name: Maintain Connection
         run: |
           Write-Host "`n=== RDP ACCESS ==="
